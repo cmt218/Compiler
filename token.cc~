@@ -1,0 +1,47 @@
+/*
+  CSE109
+  Cole Tomlinson
+  cmt218
+  Lexer program
+  Program #4
+*/
+
+#include "token.h"
+
+Token::Token(){
+  type = 0;
+  lexeme = "";
+  line = 0;
+  pos = 0;
+}
+
+Token::Token(int t,string l,int n,int p){
+  type = t;
+  lexeme = l;
+  line = n;
+  pos = p;
+}
+
+Token::~Token(){
+}
+
+int Token::getType(){
+  return type;
+}
+
+string Token::getLexeme(){
+  return lexeme;
+}
+
+int Token::getLine(){
+  return line;
+}
+
+int Token::getPos(){
+  return pos;
+}
+
+/*
+Token Token::nextToken(){
+}
+*/
