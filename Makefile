@@ -1,17 +1,29 @@
 # CSE109
 # Cole Tomlinson
 # cmt218
-# Lexer program
-# Program 4
+# Parser program
+# Program 5
 
-OBJ = lextest.o token.o lexer.o
+OBJ = token.o lexer.o parser.o microc.o #lextest.o
+
 OPTS = -g -c -Wall -Werror
 
-lextest: $(OBJ)
-	g++ -o lextest $(OBJ)
+microc: $(OBJ)
+	g++ -o microc $(OBJ)
 
-lextest.o: lextest.cc
-	g++ $(OPTS) lextest.cc
+#lextest: $(OBJ)
+#	g++ -o lextest $(OBJ)
+
+microc.o: microc.cc
+	g++ $(OPTS) microc.cc
+
+parser.o: parser.cc
+	g++ $(OPTS) parser.cc
+
+
+#lextest.o: lextest.cc
+#	g++ $(OPTS) lextest.cc
+
 
 token.o: token.cc
 	g++ $(OPTS) token.cc
@@ -20,4 +32,4 @@ lexer.o: lexer.cc
 	g++ $(OPTS) lexer.cc
 
 clean:
-	rm lextest *.o
+	rm microc *.o

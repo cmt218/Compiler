@@ -1,2 +1,5 @@
-if   else   while 123214
-function
+while( a < c) {
+x = 5;
+y = 6;
+z = 7;
+}
