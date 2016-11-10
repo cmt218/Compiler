@@ -23,8 +23,11 @@ public:
   //Constructor
   Lexer(istream&);
 
-  //Member function
+  //Member functions
   Token nextToken();
+  int peep();
+  char peek();
+  
 private:
   //Private member function
   char nextChar();

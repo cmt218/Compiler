@@ -10,6 +10,8 @@
 
 #include "token.h"
 #include "lexer.h"
+#include "tri.h"
+#include "symbolTable.h"
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -28,7 +30,7 @@ private:
     AND, OR, // Logical Operators
     PUSHL, PUSHV, STORE, // Value Transfer Instructions
     JUMP, JUMPF, JUMPT, CALL, RET, // Location Transfer Instructions
-    PRINTF, // Misc
+    PRINTF, PARAM, // Misc
     LABEL, SEQ // Pseudo Operations
   };
 
@@ -45,6 +47,14 @@ public:
     TreeNode *leftChild;
     TreeNode *rightChild;
 
+    
+    TreeNode* getl() {
+      return leftChild;
+    }
+
+    TreeNode* getr() {
+      return rightChild;
+    }
     
     // Utility function used by constructors
     void init(Operation opx, string valx, TreeNode *leftChildx, TreeNode *rightChildx) {
@@ -108,6 +118,7 @@ private:
   ostream& out;
   int lindex;
   int tindex;
+  Stack<Tri> table;
   
   string itos(int i) { stringstream ss; ss << i; string res = ss.str(); return res;}
   string makeLabel() { string tmp = "L"; stringstream ss; ss << ++lindex; string res = ss.str(); tmp = tmp + res;
@@ -120,8 +131,8 @@ private:
   
  public:
 
-
-
+  void tableTest();
+  
   //TreeNode* funcall(string functionName);
   TreeNode* factor();
   TreeNode* term();
@@ -129,17 +140,17 @@ private:
   TreeNode* relationalExpression();
   TreeNode* logicalExpression();
   //TreeNode* assignmentExpression();
-  //TreeNode* returnStatement();
+  TreeNode* returnStatement();
   //TreeNode* printfStatement();
   TreeNode* whileStatement();
   TreeNode* ifStatement();
   TreeNode* assignStatement();
-  //TreeNode* vardefStatement();  
+  TreeNode* vardefStatement();  
   TreeNode* statement();
   TreeNode* block();
   //TreeNode* parameterdef();
   //TreeNode* parameterdefs();
-  //TreeNode* function();
+  TreeNode* function();
   TreeNode* compilationunit();  
   
     

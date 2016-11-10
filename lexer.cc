@@ -20,6 +20,30 @@ Lexer::Lexer(istream &in):input(in){
   linePos = 0;
 }
 
+
+//Method for parser to see next character
+char Lexer::peek() {
+  return input.peek();
+}
+
+//Method for parser to count parameters
+int Lexer::peep() {
+  int params = 1;
+  int og = input.tellg();
+  char cur = input.get();
+  while(cur != ')'){
+    if(cur == ','){
+      params ++;
+    }
+    cur = input.get();
+  }
+  
+  input.seekg(og);
+  return params;
+}
+
+
+
 //Nextchar method
 char Lexer::nextChar(){
   //Increment line position every time a new character is accessed
@@ -47,6 +71,12 @@ Token Lexer::nextToken() {
   //Ignore blank spaces
   while(next == ' '){
     next = nextChar();
+    linePos++;
+  }
+  //ignore tab
+  if(next == '\t'){
+    next = nextChar();
+    linePos+=3;
   }
 
   int startLine = lineNum;
@@ -66,7 +96,8 @@ Token Lexer::nextToken() {
   else if(isalpha(next)){
     //Keeps adding subsequent letters and numbers to lexeme
     while(isalpha(next) || isdigit(next)){
-      if(isalpha(input.peek())){
+      //this is experimental
+      if(isalpha(input.peek()) || isdigit(input.peek())){
 	  next = nextChar();
       }
       else{

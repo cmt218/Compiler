@@ -6,6 +6,8 @@
   # Program 5
 */
 #include "parser.h"
+#include "symbolTable.cc"
+#include "tri.h"
 #include <cstring>
 #include <stdlib.h>
 #include <stdio.h> 
@@ -20,12 +22,12 @@ const string Parser::ops[] = {"ADD", "SUB", "MULT", "DIV",
 
 		      "JUMP", "JUMPF", "JUMPT", "CALL", "RET",
 
-		      "PRINTF",
+		      "PRINTF","PARAM",
 
 		      "LABEL", "SEQ" };
 
 
-Parser::Parser(Lexer& lexerx, ostream& outx): lexer(lexerx), out(outx), lindex(1), tindex(1) {  
+Parser::Parser(Lexer& lexerx, ostream& outx): lexer(lexerx), out(outx), lindex(1), tindex(1), table(Stack<Tri>(15)){
   token = lexer.nextToken();
 }
 
@@ -42,27 +44,94 @@ void Parser::check(int tokenType, string message) {
     error(message);
 }
 
-//DONE
+
+//Method for testing symbolTable functionality
+void Parser::tableTest(){
+
+}
+
+
+
 Parser::TreeNode* Parser::factor() {
   TreeNode* f;
-
+  
   //Case with expression in parenthesis
   if(token.getType() == 17){
     token = lexer.nextToken();
     f = expression();
     check(18, "Missing closing parenthesis!");
   }
-
-  //Case of identifier
+  //Case of either funcall or identifier
   else if(token.getType() == 1){
-    f = new TreeNode(PUSHV, token.getLexeme());
-  }
+    //Funcall case DONE
+    if(lexer.peek() == '('){
+      TreeNode* C = new TreeNode(CALL, token.getLexeme());
+      TreeNode* R;
+      Stack<TreeNode*> exps;
+      //Gets to token after opening paren
+      token = lexer.nextToken();
+      token = lexer.nextToken();
+      bool pCheck = false;
+      //Pushes parameters to stack if they exist
+      if(token.getType() != 18){
+	pCheck = true;
+	int numParams = lexer.peep();
+	Stack<TreeNode*> exps(numParams);
+	Stack<TreeNode*> ordered(numParams);
+	while(token.getType() != 18){	
+	  if(token.getType() == 21){
+	    token = lexer.nextToken();
+	    continue;
+	  }
 
+	  table.addSymbol(token.getLexeme());
+	  R = expression();
+	  R = new TreeNode(PUSHV, token.getLexeme());
+	  //table.addSymbol(token.getLexeme());
+	  exps.push(R);
+	}
+	//PUT THIS BACK IN IF SOMETHING BREAKS
+	token = lexer.nextToken();
+	//Puts parameters on another stack in reverse order
+	while(!exps.isEmpty()){
+	  ordered.push(exps.pop());
+	}
+	//Assembles tree with parameters and call
+	R = new TreeNode(SEQ, ordered.pop(), NULL);
+	if(!ordered.isEmpty()){
+	  R = new TreeNode(SEQ, R->leftChild, ordered.pop());
+	}
+	while(!ordered.isEmpty()){
+	  R = new TreeNode(SEQ, R, ordered.pop());
+	}
+	R = new TreeNode(SEQ, R, C);
+      }	
+      //Returns root of the funcall
+      if(pCheck){
+	//TAKE THIS OUT IF SOMETHING BREAKS
+	//token = lexer.nextToken();
+	return R;
+      }
+      else{
+	
+	//token = lexer.nextToken();
+	return C;
+      }      
+    }
+    //Identifier case 
+    else{
+      //f = new TreeNode(PUSHV, token.getLexeme());
+      string unique = table.getUniqueSymbol(token.getLexeme());
+      if(unique.compare("") == 0){
+	error("variable not found");
+      }
+      f = new TreeNode(PUSHV, unique);
+    }
+  }
   //Case of int literal
   else if(token.getType() == 2){
     f = new TreeNode(PUSHL, token.getLexeme());
   }
-
   //Ready the next token and return factor
   token = lexer.nextToken();
   return f;
@@ -216,8 +285,12 @@ Parser::TreeNode* Parser::block(){
   TreeNode* b;
   TreeNode* cur = new TreeNode(SEQ, NULL, NULL);
   //Accounts for one or more statements contained in brackets
-  check(19, "Missing opening brace!");
-  token = lexer.nextToken();
+  //check(19, "Missing opening brace!");
+  //THIS IS A BAD FIX
+  if(token.getType() == 19){
+    token = lexer.nextToken();
+  }
+  
   while(token.getType() != 20){
     if(cur -> leftChild == NULL){
       cur -> leftChild = statement();
@@ -248,11 +321,15 @@ Parser::TreeNode* Parser::ifStatement() {
     TreeNode* LE = logicalExpression();
     check(18, "Missing closing parenthesis!");
     token = lexer.nextToken();
+    table.enterScope();
     TreeNode* TB = block();
+    table.exitScope();
     //Creates tree if there is an additional else statement
     if(token.getType() == 24){
       token = lexer.nextToken();
+      table.enterScope();
       TreeNode* EB = block();
+      table.exitScope();
       string jfLabel = makeLabel();
       TreeNode* JF = new TreeNode(JUMPF, jfLabel);
       SEQ1 = new TreeNode(SEQ, LE, JF);
@@ -313,8 +390,10 @@ Parser::TreeNode* Parser::whileStatement() {
     TreeNode* LE = logicalExpression();
     check(18, "Missing closing parenthesis!");
     token = lexer.nextToken();
+    table.enterScope();
     TreeNode* BK = block();
-
+    table.exitScope();
+    
     //Links everything together with SEQ nodes
     SEQ1 = new TreeNode(SEQ, L1, LE);
     SEQ2 = new TreeNode(SEQ, SEQ1, JF);
@@ -323,7 +402,7 @@ Parser::TreeNode* Parser::whileStatement() {
     SEQ5 = new TreeNode(SEQ, SEQ4, L2);
   }
 
-  token = lexer.nextToken();
+  //token = lexer.nextToken();
   return SEQ5;
 }
 
@@ -332,17 +411,50 @@ Parser:: TreeNode* Parser::assignStatement(){
 
   //Assigns a literal to a variable 
   if(token.getType() == 1){
-    TreeNode* ID = new TreeNode(STORE, token.getLexeme());
+    //TreeNode* ID = new TreeNode(STORE, token.getLexeme());
+    string unique = table.getUniqueSymbol(token.getLexeme());
+    if(unique.compare("") == 0){
+      error("Variable not found");
+    }
+    TreeNode* ID = new TreeNode(STORE, unique);
     token = lexer.nextToken();
     check(8, "Missing assignment operator");
     token = lexer.nextToken();
     TreeNode* VAL = logicalExpression();
     a = new TreeNode(SEQ, VAL, ID);
-    check(22, "Missing semicolon!");
+    check(22, "Missing semicolon!!");
   }
 
   token = lexer.nextToken();
   return a;
+}
+
+Parser:: TreeNode* Parser::vardefStatement() {
+  TreeNode* V;
+  Stack<TreeNode*> vars(10);
+  token = lexer.nextToken();
+  //Push variables onto stack
+  while(token.getType() != 22){
+    if(token.getType() == 21){
+      token = lexer.nextToken();
+      continue;
+    }
+    V = new TreeNode(PUSHV, token.getLexeme());
+    table.addSymbol(token.getLexeme());
+    vars.push(V);
+    token = lexer.nextToken();
+  }
+
+  //SEQ variables together
+  V = new TreeNode(SEQ, vars.pop(), NULL);
+  if(!vars.isEmpty()){
+    V = new TreeNode(SEQ, V->leftChild, vars.pop());
+  }
+  while(!vars.isEmpty()){
+    V = new TreeNode(SEQ, V, vars.pop());
+  }
+  token = lexer.nextToken();
+  return V;
 }
 
 Parser:: TreeNode* Parser::statement() {
@@ -363,6 +475,16 @@ Parser:: TreeNode* Parser::statement() {
     s = ifStatement();
   }
 
+  //Vardef case
+  else if(token.getType() == 27){
+    s = vardefStatement();
+  }
+
+  //Return case
+  else if(token.getType() == 29){
+    s = returnStatement();
+  }
+  
   //Unrecognized case
   else{
     error("Unrecognized token type");
@@ -370,8 +492,55 @@ Parser:: TreeNode* Parser::statement() {
 
   return s;
 }
+
+Parser:: TreeNode* Parser::returnStatement(){
+  TreeNode* R;
+  if(token.getType() == 29){
+    token = lexer.nextToken();
+    R = logicalExpression();
+    TreeNode* RE = new TreeNode(RET, NULL, NULL);
+    R = new TreeNode(SEQ, R, RE); 
+  }
+  check(22, "missing semicolon!");
+  token = lexer.nextToken();
+  return R;
+}
+
+
+Parser:: TreeNode* Parser::function(){
+  TreeNode* F;
+  if(token.getType() == 26){
+    token = lexer.nextToken();
+    F = factor();
+    token = lexer.nextToken();
+    table.enterScope();
+    TreeNode* BK = block();
+    table.exitScope();
+    F = new TreeNode(SEQ, F, BK);
+    return F;
+  }
+
+  return NULL;
+}
+
 Parser:: TreeNode* Parser::compilationunit(){
-  TreeNode* c = statement();
-  return c;
+  table.enterScope();
+  TreeNode* C;
+  Stack<TreeNode*> funcs(10);
+  while(token.getType() != 30){
+    C = function();
+    funcs.push(C);
+  }
+
+  C = new TreeNode(SEQ, funcs.pop(), NULL);
+  if(!funcs.isEmpty()){
+    C = new TreeNode(SEQ, C->leftChild, funcs.pop());
+  }
+  while(!funcs.isEmpty()){
+    C = new TreeNode(SEQ, C, funcs.pop());
+  }
+  
+  
+  return C;
 }
 

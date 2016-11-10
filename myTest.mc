@@ -1,5 +1,5 @@
-while( a < c) {
-x = 5;
-y = 6;
-z = 7;
+function add(a1, a2) {
+  var a;
+  a = a1 + a2;
+  return a;
 }
