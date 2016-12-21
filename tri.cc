@@ -102,10 +102,12 @@ string Tri::get(string key){
 
 bool Tri::contains(string key){
 
+
   Node* curNode = sNode;
   int keyLength = key.length();
   bool found = false;
 
+   
   for(int x = 0; x <= keyLength-1; x++){
     found = false;
 
@@ -122,4 +124,6 @@ bool Tri::contains(string key){
     }
   }
   return true;
+
+
 }

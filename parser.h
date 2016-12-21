@@ -31,7 +31,7 @@ private:
     PUSHL, PUSHV, STORE, // Value Transfer Instructions
     JUMP, JUMPF, JUMPT, CALL, RET, // Location Transfer Instructions
     PRINTF, PARAM, // Misc
-    LABEL, SEQ // Pseudo Operations
+    LABEL, SEQ, FUNC // Pseudo Operations
   };
 
 
@@ -131,8 +131,16 @@ private:
   
  public:
 
-  void tableTest();
-  
+  void compare(string comp);
+  void nodeCode(TreeNode *node);
+  void vardefs(TreeNode *node);
+  void genasm(TreeNode *node);
+  void getinst(TreeNode *node);
+  void emit(string str);
+  string remQuote(string fmt);
+  string makeJ();
+  bool isUnique(string val);
+
   //TreeNode* funcall(string functionName);
   TreeNode* factor();
   TreeNode* term();
@@ -141,7 +149,7 @@ private:
   TreeNode* logicalExpression();
   //TreeNode* assignmentExpression();
   TreeNode* returnStatement();
-  //TreeNode* printfStatement();
+  TreeNode* printfStatement();
   TreeNode* whileStatement();
   TreeNode* ifStatement();
   TreeNode* assignStatement();

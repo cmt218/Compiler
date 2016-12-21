@@ -1,3 +1,7 @@
+cout << "pop rbx" << endl;
+cout << "pop rax" << endl;
+cout << "add rax,rbx" << endl;
+cout << "push rax" << endl;
 #include "token.h"
 #include "lexer.h"
 #include <iostream>

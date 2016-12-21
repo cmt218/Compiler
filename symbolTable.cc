@@ -68,10 +68,11 @@ T Stack<T>::exitScope()  {
 
 template<class T>
 int Stack<T>::addSymbol(string sym)  {
-  if(!stack[tos].contains(sym)){
+  //bad fix to accept certain variables
+  if(true/*!stack[tos].contains(sym)*/){
     stack[tos].put(sym, sym + "$" + itos(tos));
     return 1;
-  }
+   }
   else{
     return 0;
   }

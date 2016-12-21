@@ -10,8 +10,22 @@ void processFile(istream& in) {
   Lexer lexer(in);
   Token token;
   Parser parser(lexer, cout);
+
+  //PARSER
   Parser::TreeNode* program = parser.compilationunit();
-  cout << Parser::TreeNode::toString(program) << endl;
+  //cout << Parser::TreeNode::toString(program) << endl;
+
+  //ASSEMBLY
+  parser.genasm(program);
+
+  //LEXER
+  /*
+  printf(" Type     Lexeme        Line #    Pos\n");
+  while (token.getType() != 30) {
+    printf("%5d     %-14s %5d  %5d\n", token.getType(), token.getLexeme().c_str(), token.getLine(), token.getPos());
+    token = lexer.nextToken();
+    }
+  */
 }
 
 int main(int argc, char **argv) {

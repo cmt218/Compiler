@@ -1,4 +1,4 @@
-function main() {
+zfunction main() {
   var i, sum;
   i = 1;
   sum = 0;

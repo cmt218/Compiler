@@ -11,9 +11,9 @@ function main() {
   return 0;
 }
 
-function add(a1, a2) {
-  var a;
-  a = a1 + a2;
-  return a;
+function add(a, b) {
+  var c;
+  c = a + b;
+  return c;
 }
 

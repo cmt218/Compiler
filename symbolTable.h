@@ -15,6 +15,7 @@ using namespace std;
 template<class T>
 class Stack {
 public:
+  int size;
   Stack(int n);
   Stack();
   Stack(const Stack&);
@@ -34,7 +35,7 @@ public:
   const T operator [](int i) const;
 private:
   T *stack;
-  int size;
+  //int size;
   int tos;
   static const int EMPTY = -1;
   void checkIndex(int i) const;
