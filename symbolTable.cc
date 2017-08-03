@@ -8,7 +8,7 @@
 
 /*
      A modified implementation of a stack template.
-        Credit to: J Femister
+     original template credit: J Femister
 */
 
 
